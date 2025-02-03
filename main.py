@@ -1,8 +1,9 @@
+import logging
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from form_processor import process_input
-import logging
-from datetime import datetime
+
+from spacy_form_processor import process_input
 
 # Configure logging
 logging.basicConfig(
@@ -32,6 +33,7 @@ class FormField(BaseModel):
     name: str
     type: str
     required: bool = False
+
 
 class FormData(BaseModel):
     fields: list[FormField] = list
@@ -73,10 +75,19 @@ def generate_form(user_input: UserInput):
     Returns:
         dict: The updated form data structure.
     """
+    pass
+
+
+@app.post("/generate-form/spacy")
+def generate_form_spacy(user_input: UserInput):
+    """
+    Generate a form using the original Spacy implementation.
+    This endpoint is kept for comparison and testing purposes.
+    """
     global form_data
 
     try:
         form_data = process_input(user_input.input_text, form_data)
-        return {"message": "Form updated successfully!", "form_data": form_data}
+        return {"message": "Form updated successfully (Spacy)!", "form_data": form_data}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
