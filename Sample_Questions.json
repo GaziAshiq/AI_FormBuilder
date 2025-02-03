@@ -1,0 +1,33 @@
+{
+  "message": "Form updated successfully!",
+  "form_data": {
+    "fields": [
+      {
+        "type": "text",
+        "label": "a text field",
+        "name": "a_text_field",
+        "required": false
+      },
+      {
+        "type": "radio",
+        "label": "a multiple choice question",
+        "name": "a_multiple_choice_question",
+        "required": false,
+        "options": [
+          {
+            "value": "male",
+            "label": "male"
+          },
+          {
+            "value": "female",
+            "label": "female"
+          },
+          {
+            "value": "other",
+            "label": "other"
+          }
+        ]
+      }
+    ]
+  }
+}
