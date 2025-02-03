@@ -1,13 +1,53 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from form_processor import process_input
+import logging
+from datetime import datetime
 
-app = FastAPI()
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    title="Form Generator API",
+    description="API for generating dynamic forms based on user input",
+    version="1.0.0"
+)
 
 
-# Input schema for the API
+# Input schema with validation
 class UserInput(BaseModel):
-    input_text: str
+    input_text: str = Field(
+        ...,
+        min_length=1,
+        max_length=1000,
+        description="The user input describing the form field"
+    )
+
+
+class FormField(BaseModel):
+    name: str
+    type: str
+    required: bool = False
+
+class FormData(BaseModel):
+    fields: list[FormField] = list
+
+    class Config:
+        validate_assignment = True
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate_to_json
+
+    @classmethod
+    def validate_to_json(cls, value):
+        if isinstance(value, dict):
+            return cls(**value)
+        return value
 
 
 # Initialize an empty form JSON structure
