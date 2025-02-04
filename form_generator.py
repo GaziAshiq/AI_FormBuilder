@@ -1,8 +1,8 @@
-from typing import Dict, Any, List
+from typing import Dict, Any
 import json
-from ai_server import fetch_chat_response, process_streaming_response, OLLAMA_MODEL, USE_OLLAMA, OPENAI_MODEL
 import uuid
 from datetime import datetime, timezone
+from ai_server import AIClient
 
 FIELD_TYPE_MAPPING = {
     "text": "1",
@@ -22,7 +22,7 @@ def generate_uuid() -> str:
 
 
 def create_validation_rules(field_type: str, field_name: str) -> Dict[str, Any]:
-    """Generate validation rules based on field type."""
+    """Generate validation rules based on a field type."""
     if field_type == "number" and field_name.lower() == "age":
         return {
             "queryWithNames": "{age} >= 0 and {age} <= 150",
@@ -35,78 +35,44 @@ def create_validation_rules(field_type: str, field_name: str) -> Dict[str, Any]:
 
 
 def create_chat_message(content: str) -> Dict[str, Any]:
-    if USE_OLLAMA:
-        return {
-            "model": OLLAMA_MODEL,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are a form generation assistant. You MUST respond with ONLY valid JSON, no explanations or additional text."
-                },
-                {
-                    "role": "user",
-                    "content": content
-                }
-            ],
-            "stream": True
-        }
-    else:
-        return {
-            "model": OPENAI_MODEL,
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are a form generation assistant. You MUST respond with ONLY valid JSON, no explanations or additional text."
-                },
-                {
-                    "role": "user",
-                    "content": content
-                }
-            ],
-            "stream": True
-        }
+    """Create a properly formatted chat message."""
+    return {
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a form generation assistant. You MUST respond with ONLY valid JSON, no explanations or additional text."
+            },
+            {
+                "role": "user",
+                "content": content
+            }
+        ],
+        "stream": True
+    }
 
 
 def create_prompt(user_input: str) -> str:
     return f"""Generate a form for: {user_input}
 
-IMPORTANT: Return ONLY a JSON object with fields array like this:
-{{
-    "fields": [
-        {{
-            "type": "text",
-            "label": "Field Label",
-            "name": "field_name",
-            "required": true,
-            "options": [
-                {{
-                    "value": "1",
-                    "label": "Option 1"
-                }},
-                {{
-                    "value": "2",
-                    "label": "Option 2"
-                }}
-            ]
-        }}
-    ]
-}}
-
-Available field types: text, number, radio, dropdown, date, file, image, document
-Note: options array only needed for radio and dropdown types."""
+Please create a form with appropriate fields. Each field should have:
+- type (text, number, radio, dropdown, date, file, image)
+- label (user-friendly display name)
+- name (snake_case identifier)
+- required (boolean)
+- options (array, only for radio/dropdown)"""
 
 
 def generate_form_structure(form_data: Dict[str, Any]) -> Dict[str, Any]:
     form_id = generate_uuid()
     current_time = datetime.now(timezone.utc).isoformat()
-    
+
     data_elements = []
     draft_members = []
     data_element_options = []
-    
+
     for idx, field in enumerate(form_data["fields"], 1):
         field_id = f"{form_id}:{field['name']}"
-        
+
         # Map field types to DataElementTypeId
         type_mapping = {
             "text": "1",
@@ -118,7 +84,7 @@ def generate_form_structure(form_data: Dict[str, Any]) -> Dict[str, Any]:
             "radio": "8",
             "dropdown": "8"
         }
-        
+
         # Create DataElement
         data_element = {
             "Name": field["name"],
@@ -145,7 +111,7 @@ def generate_form_structure(form_data: Dict[str, Any]) -> Dict[str, Any]:
             "IsDeleted": False,
             "Id": field_id
         }
-        
+
         # Handle options for radio/dropdown
         if field.get("options"):
             options = []
@@ -168,9 +134,9 @@ def generate_form_structure(form_data: Dict[str, Any]) -> Dict[str, Any]:
                 options.append(option)
                 data_element_options.append(option)
             data_element["DataElementOptions"] = options
-        
+
         data_elements.append(data_element)
-        
+
         # Create DraftSurveyDataElementMember
         draft_member = {
             "DraftSurveyFormId": form_id,
@@ -187,7 +153,7 @@ def generate_form_structure(form_data: Dict[str, Any]) -> Dict[str, Any]:
             "Id": generate_uuid()
         }
         draft_members.append(draft_member)
-    
+
     return {
         "DataElements": data_elements,
         "DraftSurveyDataElementMembers": draft_members,
@@ -196,41 +162,90 @@ def generate_form_structure(form_data: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def process_ai_response(ai_response: str) -> Dict[str, Any]:
+    """Process the AI response and extract the form data"""
     try:
-        # Extract JSON from response
-        json_start = ai_response.find('{')
-        json_end = ai_response.rfind('}') + 1
-        if json_start != -1 and json_end != -1:
-            json_str = ai_response[json_start:json_end]
-            form_data = json.loads(json_str)
-            return generate_form_structure(form_data)
+        print("\nDebug: Processing AI response...")
+
+        if not ai_response:
+            print("Debug: Empty AI response")
+            return {}
+
+        # Parse the JSON
+        form_data = json.loads(ai_response)
+
+        # Validate response structure
+        if not isinstance(form_data, dict):
+            print("Debug: Response is not a dictionary")
+            return {}
+
+        if "form_data" not in form_data:
+            print("Debug: Missing form_data key")
+            return {}
+
+        if "fields" not in form_data["form_data"]:
+            print("Debug: Missing fields array")
+            return {}
+
+        # Debug: Show field summary
+        print("\nForm field summary:")
+        for field in form_data["form_data"]["fields"]:
+            print(f"- {field['name']} ({field['type']})")
+
+        return form_data["form_data"]
+
+    except json.JSONDecodeError as e:
+        print(f"JSON parsing error: {e}")
+        print("Invalid JSON content:", ai_response)
+        return {}
     except Exception as e:
         print(f"Error processing response: {e}")
         return {}
 
 
 def main():
+    client = AIClient(use_ollama=True)
+    current_form = {"fields": []}
+
+    print("\nForm Generator")
+    print("Commands:")
+    print("- Type your form requirements")
+    print("- 'show' to see current form")
+    print("- 'quit' to exit")
+    print("-" * 50)
+
     while True:
         try:
-            user_input = input("\nDescribe your survey form (or 'quit' to exit): ").strip()
+            user_input = input("\nWhat would you like to do? ").strip()
             if not user_input:
                 continue
+
             if user_input.lower() in ['quit', 'exit', 'q']:
                 print("\nExiting form generator...")
                 break
-            
-            response = fetch_chat_response(create_prompt(user_input))
-            ai_response = process_streaming_response(response)
-            
+
+            if user_input.lower() == 'show':
+                if current_form["fields"]:
+                    print("\nCurrent form structure:")
+                    print(json.dumps(current_form, indent=2))
+                else:
+                    print("\nNo form created yet")
+                continue  # Skip AI processing for 'show' command
+
+            # Get AI response
             print("\nGenerating form structure...")
-            form_structure = process_ai_response(ai_response)
-            
-            if form_structure:
-                print("\nGenerated Form Structure:")
-                print(json.dumps(form_structure, indent=2))
+            ai_response = client.fetch_chat_response(user_input, current_form)
+
+            # Process response
+            form_data = process_ai_response(ai_response)
+
+            # Update current form
+            if form_data and "fields" in form_data:
+                current_form = form_data
+                print("\nUpdated form structure:")
+                print(json.dumps(current_form, indent=2))
             else:
-                print("\nFailed to generate form structure")
-                
+                print("\nFailed to update form structure")
+
         except KeyboardInterrupt:
             print("\nOperation cancelled. Type 'quit' to exit properly.")
             continue
