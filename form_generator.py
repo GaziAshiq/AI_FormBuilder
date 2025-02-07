@@ -215,21 +215,22 @@ def main():
 
     while True:
         try:
-            user_input = input("\nWhat would you like to do? ").strip()
+            user_input = input("\nWhat would you like to do? ").strip().lower()
             if not user_input:
                 continue
 
-            if user_input.lower() in ['quit', 'exit', 'q']:
+            if user_input in ['quit', 'exit', 'q']:
                 print("\nExiting form generator...")
                 break
 
-            if user_input.lower() == 'show':
+            # Handle 'show' command locally without AI processing
+            if user_input == 'show':
                 if current_form["fields"]:
                     print("\nCurrent form structure:")
                     print(json.dumps(current_form, indent=2))
                 else:
                     print("\nNo form created yet")
-                continue  # Skip AI processing for 'show' command
+                continue
 
             # Get AI response
             print("\nGenerating form structure...")
