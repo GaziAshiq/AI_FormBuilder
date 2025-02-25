@@ -9,6 +9,8 @@ openai = "*"
 python-dotenv = "*"
 streamlit = "*"
 ollama = "*"
+google-genai = "*"
+google-generativeai = "*"
 
 [dev-packages]
 
