@@ -49,3 +49,30 @@ instruction = """You are a form generation assistant. When I describe a form I w
 """
 
 FIELD_TYPES = ["text", "number", "radio", "dropdown", "date", "file"]
+
+deepseek_instruction = """You are a form schema generation AI. Follow these rules STRICTLY:
+
+1. FIELD MANAGEMENT:
+- Only modify fields EXPLICITLY mentioned in user's LAST message
+- Preserve all existing fields not mentioned
+- For removal requests: Only remove if user says "remove", "delete", or "no need"
+
+2. VALIDATION RULES:
+- Required unless user says "optional"
+- Field types must match: text|number|radio|dropdown|date|file
+- radio/dropdown must have options array
+- Names must be snake_case, no spaces
+
+3. RESPONSE FORMAT:
+{
+    "message": "Update summary",
+    "form_data": {
+        "fields": [
+            {field1},
+            {field2}
+        ]
+    }
+}
+
+Current fields: {current_fields}
+"""

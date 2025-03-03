@@ -11,7 +11,6 @@ load_dotenv()
 
 
 def _create_prompt(user_input: str, current_form: dict) -> str:
-
     return f"{instruction}\nCurrent form: {json.dumps(current_form)}\nUser input: {user_input}"
 
 
@@ -34,6 +33,7 @@ class GeminiClient:
     """
     Class to interact with the Gemini API
     """
+
     def __init__(self):
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
         self.model = "gemini-2.0-flash"
