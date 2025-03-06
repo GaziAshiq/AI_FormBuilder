@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from typing import Dict, List, Any, Optional
 from openai import OpenAI
 from utils.constants import instruction
@@ -137,9 +138,12 @@ class DeepSeekClient:
         buffer = ""
         in_json = False
         json_depth = 0
+        start_time = time.time()
 
         try:
             for chunk in response:
+                if time.time() - start_time > 60:
+                    return json.dumps({"message": "Response timeout after 60 sec", "form_data": {"fields": []}})
                 if hasattr(chunk.choices[0].delta, 'content'):
                     content = chunk.choices[0].delta.content
                     if content:
@@ -159,10 +163,16 @@ class DeepSeekClient:
                 json_obj = json.loads(buffer)
                 return json.dumps(json_obj)
             except json.JSONDecodeError:
-                return ""
+                return json.dumps({
+                    "message": "Error: Failed to parse response from DeepSeek",
+                    "form_data": {"fields": []}
+                })
 
-        except Exception:
-            return ""
+        except Exception as e:
+            return json.dumps({
+                "message": f"Error processing streaming response: {str(e)}",
+                "form_data": {"fields": []}
+            })
 
     def _parse_response(self, ai_response: str) -> Dict[str, Any]:
         """
