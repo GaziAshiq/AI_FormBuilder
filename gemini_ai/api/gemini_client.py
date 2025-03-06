@@ -18,15 +18,16 @@ def _parse_response(ai_response: str) -> dict:
     cleaned_response = ai_response.strip().lstrip(
         '`').lstrip('json').lstrip().rstrip('`')
     try:
-        form_data = json.loads(cleaned_response)
-        if "form_data" in form_data and "fields" in form_data["form_data"]:
-            return form_data["form_data"]
-        return {}
-        # return form_data
+        response_obj = json.loads(cleaned_response)
+        if "form_data" in response_obj and "fields" in response_obj["form_data"]:
+            return response_obj  # Return the full response including message
+        return {"message": "Invalid response format", "form_data": {"fields": []}}
+    except json.JSONDecodeError as e:
+        print(f"Error parsing response (JSONDecodeError): {e}")
+        return {"message": "Error: Invalid JSON response from the model.", "form_data": {"fields": []}}
     except Exception as e:
-        print(f"Error parsing Gemini response: {e}")
-        return {}
-        # return {"error": "invalid response structure"}
+        print(f"Error parsing response: {e}")
+        return {"message": f"An error occurred: {e}", "form_data": {"fields": []}}
 
 
 class GeminiClient:
