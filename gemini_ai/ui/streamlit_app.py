@@ -62,6 +62,9 @@ def app():
     # Create a container for alerts at the top
     alert_container = st.container()
 
+    if "form_updated" not in st.session_state:
+        st.session_state.form_updated = False
+
     # Model selection in sidebar
     with st.sidebar:
         selected_model = st.selectbox(
@@ -70,8 +73,7 @@ def app():
             index=0
         )
         st.caption(f"Currently using: {selected_model}")
-        st.markdown("""
-        **Form View**""")
+        st.markdown("""**Form View**""")
         # Display current generated output
         if st.session_state.form_data and st.session_state.form_data.get("fields"):
             fields = st.session_state.form_data.get("fields", [])
@@ -156,10 +158,14 @@ def app():
                 if form_data and "fields" in form_data:
                     # Update the form data in session state
                     st.session_state.form_data = form_data
+                    st.session_state.form_updated = True
 
                     # Display the model's message
                     with alert_container:
                         display_system_alert(message)
+
+                    # Force a rerun to update the sidebar
+                    st.rerun()
                 else:
                     with alert_container:
                         display_system_alert("Failed to update form.", "warning")
