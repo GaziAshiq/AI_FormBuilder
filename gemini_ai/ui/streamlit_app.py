@@ -232,28 +232,6 @@ def app():
             on_change=generate_form if st.session_state.text_input_submitted else None
         )
 
-        # Add JavaScript to detect Ctrl+Enter
-        st.markdown("""
-        <script>
-            const textarea = document.querySelector('textarea[data-testid="stTextArea"]');
-            textarea.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                    e.preventDefault();
-                    window.parent.postMessage({
-                        type: "streamlit:setComponentValue",
-                        value: true,
-                        dataType: "bool",
-                        key: "text_input_submitted"
-                    }, "*");
-
-                    // Submit the form programmatically
-                    const form = document.querySelector('form');
-                    if (form) form.dispatchEvent(new Event('submit', { bubbles: true }));
-                }
-            });
-        </script>
-        """, unsafe_allow_html=True)
-
         col1, col2, col3, col4, col5 = st.columns([3, 3, 2, 2, 2])
         with col1:
             if st.button("Generate", type="primary", disabled=not user_input) or st.session_state.get(
