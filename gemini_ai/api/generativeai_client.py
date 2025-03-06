@@ -11,22 +11,41 @@ load_dotenv()
 
 
 def _create_prompt(user_input: str, current_form: dict) -> str:
-    """Creates the prompt for the Gemini model."""
-    prompt_template = f"""{instruction}
-
-    Current form: {json.dumps(current_form)}\nUser input: {user_input}
     """
+    Creates a formatted prompt for the Generative AI model.
+
+    Args:
+        user_input (str): The user's natural language request about form creation/modification
+        current_form (dict): The current state of the form with all fields and properties
+
+    Returns:
+        str: A formatted prompt string ready to be sent to the model
+    """
+    prompt_template = f"""{instruction}
+        Current form: {json.dumps(current_form)}\nUser input: {user_input}"""
+
     return prompt_template
 
 
 def _parse_response(ai_response: str) -> dict:
-    """Parses the JSON response from the Gemini model."""
+    """
+    Parses the JSON response from the Gemini model.
+
+    Cleans the response text by removing markdown code block symbols and
+    parses it into a Python dictionary. Handles various error cases.
+
+    Args:
+        ai_response (str): The raw text response from the AI model
+
+    Returns:
+        dict: The parsed response containing form data or error information
+    """
     cleaned_response = ai_response.strip().lstrip(
         '`').lstrip('json').lstrip().rstrip('`')
     try:
         form_data = json.loads(cleaned_response)
         if "form_data" in form_data and "fields" in form_data["form_data"]:
-            return form_data
+            return form_data["form_data"]
         return {}
     except json.JSONDecodeError as e:
         print(f"Error parsing Gemini response (JSONDecodeError): {e}")
@@ -38,18 +57,29 @@ def _parse_response(ai_response: str) -> dict:
 
 class GeminiClient:
     """
-    Class to interact with the Gemini API using google.generativeai
+    Client class to interact with the Google Generative AI API.
+
+    This class manages the connection to Google's generative AI model,
+    maintains chat history, and handles form generation requests.
     """
 
     def __init__(self):
-        """Initializes the Gemini client."""
+        """
+        Initializes the Gemini client.
+
+        Sets up the API connection using the configured API key and
+        initializes a chat session with the specified model
+        """
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
         self.model = genai.GenerativeModel("gemini-2.0-flash")
         self.chat = self.model.start_chat(history=[])
 
     def generate_form(self, prompt_input: str, current_form: dict = None) -> dict:
         """
-        Generates a form based on user input using the Gemini model.
+        Generates or updates a form based on user input.
+
+        Sends a constructed prompt to the AI model and processes the response
+        to return a structured form definition or error message.
 
         Args:
             prompt_input (str): The user's input describing the form requirements.
