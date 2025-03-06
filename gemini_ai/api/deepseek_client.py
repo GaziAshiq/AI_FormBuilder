@@ -2,7 +2,7 @@ import os
 import json
 from typing import Dict, List, Any, Optional
 from openai import OpenAI
-from utils.constants import deepseek_instruction
+from utils.constants import instruction
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -23,7 +23,7 @@ class DeepSeekClient:
             base_url="https://api.deepseek.com/beta"
         )
         self.model = "deepseek-chat"
-        self.system_prompt = deepseek_instruction
+        self.system_prompt = instruction
 
     def generate_form(self, prompt_input: str, current_form: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
