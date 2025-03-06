@@ -45,13 +45,13 @@ def app():
 
     if "model_forms" not in st.session_state:
         st.session_state.model_forms = {
-            "Gemini": {"fields": []},
             "GenerativeAI": {"fields": []},
+            "Gemini": {"fields": []},
             "DeepSeek:R1": {"fields": []}
         }
 
     if "selected_model" not in st.session_state:
-        st.session_state.selected_model = "Gemini"
+        st.session_state.selected_model = "GenerativeAI"
 
     # Now set up the page
     st.set_page_config(page_title="Form Generator", page_icon="🔮", layout="wide")
@@ -66,12 +66,12 @@ def app():
     with st.sidebar:
         selected_model = st.selectbox(
             "Select AI Model",
-            ["Gemini", "GenerativeAI", "DeepSeek:R1"],
+            ["GenerativeAI", "Gemini", "DeepSeek:R1"],
             index=0
         )
         st.caption(f"Currently using: {selected_model}")
         st.markdown("""
-        **Current Form**""")
+        **Form View**""")
         # Display current generated output
         if st.session_state.form_data and st.session_state.form_data.get("fields"):
             fields = st.session_state.form_data.get("fields", [])
@@ -232,7 +232,7 @@ def app():
             on_change=generate_form if st.session_state.text_input_submitted else None
         )
 
-        col1, col2, col3, col4, col5 = st.columns([3, 3, 2, 2, 2])
+        col1, col2, col3, col4, col5 = st.columns([3, 3, 3, 1, 1])
         with col1:
             if st.button("Generate", type="primary", disabled=not user_input) or st.session_state.get(
                     "text_input_submitted"):
