@@ -10,30 +10,10 @@ load_dotenv()
 
 
 class DeepSeekClient:
-    """
-    Client for interacting with DeepSeek API to generate form data.
-
-    This class provides functionality to communicate with the DeepSeek AI model
-    through the OpenAI client interface, specifically for generating and
-    modifying form structures based on natural language requests.
-
-    Attributes:
-        api_key (str): API key for authenticating with DeepSeek
-        client (OpenAI): Configured OpenAI client instance
-        model (str): The DeepSeek model identifier to use
-        system_prompt (str): Instructions for the AI model
-    """
+    """Client for interacting with DeepSeek API to generate form data."""
 
     def __init__(self):
-        """
-        Initialize the DeepSeek client with API configuration.
-
-        Sets up the connection to DeepSeek's API using the OpenAI client library.
-        Requires the DEEPSEEK_API_KEY environment variable to be set.
-
-        Raises:
-            ValueError: If the DEEPSEEK_API_KEY environment variable is not set
-        """
+        """Initialize the DeepSeek client with API configuration."""
         self.api_key = os.getenv("DEEPSEEK_API_KEY")
         if not self.api_key:
             raise ValueError("DEEPSEEK_API_KEY environment variable not set")
@@ -50,20 +30,12 @@ class DeepSeekClient:
         """
         Generate a form based on user input using DeepSeek model.
 
-        This method handles the complete workflow of form generation:
-        1. Creating appropriate messages with context
-        2. Sending the request to the DeepSeek API
-        3. Processing the streaming response
-        4. Parsing the response into a structured form
-
         Args:
-            prompt_input (str): The user's natural language form requirements
-            current_form (Optional[Dict[str, Any]]): The existing form structure to modify,
-                                                    or None to create a new form
+            prompt_input: The user's form requirements.
+            current_form: The existing form structure, if any.
 
         Returns:
-            Dict[str, Any]: Dictionary containing the generated form data or error information
-                           with the structure: {"message": str, "form_data": Dict}
+            Dictionary containing the generated or updated form data.
         """
         try:
             if current_form is None:
@@ -92,18 +64,7 @@ class DeepSeekClient:
             }
 
     def _create_messages(self, context: Dict[str, Any]) -> List[Dict[str, str]]:
-        """
-        Create message structure for the API request.
-
-        Formats the system prompt and user message based on whether we're modifying
-        an existing form or creating a new one.
-
-        Args:
-            context (Dict[str, Any]): Dictionary containing the current form and user request
-
-        Returns:
-            List[Dict[str, str]]: List of message objects with role and content keys
-        """
+        """Create message structure for API request."""
         if context.get("current_form") and context["current_form"].get("fields"):
             user_message = f"""Current form has these fields:
             {json.dumps(context['current_form'], indent=2)}
@@ -123,18 +84,7 @@ class DeepSeekClient:
         ]
 
     def _process_streaming_response(self, response) -> str:
-        """
-        Process streaming response, capturing valid JSON.
-
-        Handles chunked streaming responses from the API, detecting and
-        extracting complete JSON objects by tracking opening and closing braces.
-
-        Args:
-            response: The streaming response iterator from the API call
-
-        Returns:
-            str: The complete JSON response as a string, or empty string if parsing fails
-        """
+        """Process streaming response, capturing valid JSON."""
         buffer = ""
         in_json = False
         json_depth = 0
@@ -175,19 +125,7 @@ class DeepSeekClient:
             })
 
     def _parse_response(self, ai_response: str) -> Dict[str, Any]:
-        """
-        Parse the AI response and extract form data.
-
-        Validates the response format and ensures it contains the expected
-        structure with form fields.
-
-        Args:
-            ai_response (str): The JSON string response from the AI model
-
-        Returns:
-            Dict[str, Any]: Dictionary containing the parsed form data or error information
-                           with the structure: {"message": str, "form_data": Dict}
-        """
+        """Parse the AI response and extract form data."""
         try:
             if not ai_response:
                 return {"message": "Empty response", "form_data": {"fields": []}}
