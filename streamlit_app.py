@@ -314,3 +314,7 @@ def app():
                         st.json(form_data)
                     else:
                         st.warning("No fields generated")
+
+
+if __name__ == "__main__":
+    app()
