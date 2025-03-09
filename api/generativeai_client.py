@@ -105,11 +105,45 @@ class GeminiClient:
 if __name__ == "__main__":
     client = GeminiClient()
 
+    tem = """This advanced user registration form is designed to collect detailed personal, contact, address, and preference information to create a comprehensive user profile. The form incorporates dynamic field validation, conditional logic, and secure data handling to enhance user experience and ensure accurate data submission.
+Fields & Configuration:
+1. Personal Information
+Full Name (Text Input) – Required, min 3/max 50 characters, letters only.
+Username (Text Input) – Required, unique, 5-20 characters, alphanumeric.
+Email Address (Email Input) – Required, must be in valid format (example@domain.com).
+Phone Number (Number Input) – Required, valid international format.
+Date of Birth (Date Picker) – Required, must be 18+ years old.
+Gender (Dropdown) – Options: Male, Female, Other, Prefer not to say.
+Profile Picture (File Upload) – Accepts .jpg, .png, max size 5MB.
+2. Address Details
+Street Address (Text Input) – Required, max 100 characters.
+City (Dropdown) – Auto-populated based on country selection.
+State/Province (Dropdown) – Conditional field, shown based on country.
+Postal Code (Text Input) – Required, validated based on country format.
+Country (Dropdown) – Required, list of all countries.
+3. Security Settings
+Password (Password Input) – Required, min 8 characters, includes uppercase, lowercase, number, and special character.
+Confirm Password (Password Input) – Must match the password field.
+Security Question (Dropdown) – User selects a predefined question.
+Security Answer (Text Input) – Required, case-sensitive.
+4. Preferences & Additional Details
+Preferred Language (Dropdown) – Options: English, Spanish, French, etc.
+Communication Preferences (Checkbox Group) – Options: Email, SMS, Push Notifications.
+Newsletter Subscription (Toggle Switch) – Default enabled.
+Terms & Conditions (Checkbox) – Must be checked to submit.
+Referral Code (Optional, Text Input) – If entered, validated against existing codes.
+Additional Notes (Multi-line Text Input) – Optional, max 500 characters.
+5. Submission & Confirmation
+Form submission button: “Create Account”
+Captcha validation to prevent spam.
+Success/Error message handling for user feedback.    """
+
     current_form = {"fields": []}
     print("\nGemini Form Generator")
     print("Type 'show' to see current form, or 'quit' to exit.")
     while True:
-        user_input = input("\nEnter form requirements: ").strip()
+        # user_input = input("\nEnter form requirements: ").strip()
+        user_input = tem
         if user_input.lower() in ["quit", "exit", "q"]:
             print("Exiting Gemini Form Generator.")
             break
