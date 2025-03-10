@@ -2,7 +2,6 @@ import json
 import streamlit as st
 from api.gemini_client import GeminiClient
 from api.deepseek_client import DeepSeekClient
-from api.generativeai_client import GeminiClient as GenerativeAIClient
 
 
 def display_system_alert(message, alert_type="success"):
@@ -45,17 +44,16 @@ def app():
 
     if "model_forms" not in st.session_state:
         st.session_state.model_forms = {
-            "GenerativeAI": {"fields": []},
             "Gemini": {"fields": []},
             "DeepSeek:R1": {"fields": []}
         }
 
     if "selected_model" not in st.session_state:
-        st.session_state.selected_model = "GenerativeAI"
+        st.session_state.selected_model = "Gemini"
 
-    # Now set up the page
-    st.set_page_config(page_title="Form Generator", page_icon="🔮", layout="wide")
-    st.title("AI Form Generator")
+    # Page configuration
+    st.set_page_config(page_title="Form Builder", page_icon="🔮", layout="wide")
+    st.title("AI Form Builder with Model Comparison")
     st.write("This app generates a form based on user input.")
     st.markdown("---")
 
@@ -69,10 +67,11 @@ def app():
     with st.sidebar:
         selected_model = st.selectbox(
             "Select AI Model",
-            ["GenerativeAI", "Gemini", "DeepSeek:R1"],
+            ["Gemini", "DeepSeek:R1"],
             index=0
         )
-        st.caption(f"Currently using: {selected_model}")
+        # st.caption(f"Currently using: {selected_model}")
+
         st.markdown("""**Form View**""")
         # Display current generated output
         if st.session_state.form_data and st.session_state.form_data.get("fields"):
@@ -131,13 +130,11 @@ def app():
     # Initialize the appropriate client based on selection
     if selected_model == "Gemini":
         client = GeminiClient()
-    elif selected_model == "GenerativeAI":
-        client = GenerativeAIClient()
     else:  # DeepSeek
         client = DeepSeekClient()
 
     # Display current model info
-    st.caption(f"Powered by {selected_model} AI")
+    st.caption(f"Powered by {selected_model}")
 
     # Function to generate form
     def generate_form():
@@ -181,7 +178,6 @@ def app():
         # Initialize all clients
         clients = {
             "Gemini": GeminiClient(),
-            "GenerativeAI": GenerativeAIClient(),
             "DeepSeek:R1": DeepSeekClient()
         }
 
@@ -259,6 +255,7 @@ def app():
         with col4:
             if st.button("Clear Form", type="tertiary", disabled=not st.session_state.form_data.get("fields")):
                 st.session_state.form_data = {"fields": []}
+                st.rerun()
                 with alert_container:
                     display_system_alert("Form cleared successfully!", "info")
 

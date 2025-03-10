@@ -4,7 +4,7 @@ from api.gemini_client import GeminiClient
 
 
 def app():
-    st.set_page_config(page_title="Form Generator", page_icon="🔮", layout="centered")
+    st.set_page_config(page_title="Form Generator", page_icon="📝", layout="centered")
     st.title("Form Generator")
     st.write("This app generates a form based on user input.")
 
